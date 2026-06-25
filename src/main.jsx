@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Menu, Plus, Pencil, Trash2, Eye, EyeOff, ShoppingCart } from "lucide-react";
@@ -387,7 +386,7 @@ function Login({ data, customerSave, adminLogin }) {
         {mode === "register" && (
           <>
             <input placeholder="WhatsApp" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
-            <input placeholder="CPF opcional" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
+            <input placeholder="CPF obrigatório para envio" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
             <h3>Endereço</h3>
             <div className="shippingGrid">
               <input placeholder="CEP" value={form.cep} onChange={event => setForm({ ...form, cep: event.target.value })} />
@@ -818,6 +817,7 @@ function OrdersAdmin({ data, load }) {
             <option>Chargeback</option>
           </select>
 
+          <input placeholder="CPF do cliente para etiqueta" defaultValue={order.buyer?.cpf || ""} onBlur={event => update(order.id, { buyer: { ...(order.buyer || {}), cpf: event.target.value } })} />
           <input placeholder="Código de rastreio" defaultValue={order.tracking_code || ""} onBlur={event => update(order.id, { tracking_code: event.target.value })} />
           <button className="btn red full" onClick={() => generateLabel(order.id)} disabled={!!order.melhor_envio_order_id}>{order.melhor_envio_order_id ? "Etiqueta gerada" : "Gerar etiqueta"}</button>
         </div>
