@@ -1,81 +1,884 @@
 
-import React,{useEffect,useState}from"react";import{createRoot}from"react-dom/client";import{Menu,Plus,Pencil,Trash2,Eye,EyeOff,ShoppingCart}from"lucide-react";import"./style.css";
+import React, { useEffect, useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { Menu, Plus, Pencil, Trash2, Eye, EyeOff, ShoppingCart } from "lucide-react";
+import "./style.css";
 
-function calculateShipping(cep,state,total){
- const clean=String(cep||"").replace(/\D/g,""),rawUf=String(state||"").toUpperCase().trim();
- if(clean.length<8)return null;
- let uf=rawUf;
- const prefix=Number(clean.slice(0,2));
- if(!uf){
-  if(prefix>=1&&prefix<=19)uf="SP";else if(prefix>=20&&prefix<=28)uf="RJ";else if(prefix===29)uf="ES";else if(prefix>=30&&prefix<=39)uf="MG";else if(prefix>=40&&prefix<=48)uf="BA";else if(prefix===49)uf="SE";else if(prefix>=50&&prefix<=56)uf="PE";else if(prefix===57)uf="AL";else if(prefix===58)uf="PB";else if(prefix===59)uf="RN";else if(prefix>=60&&prefix<=63)uf="CE";else if(prefix===64)uf="PI";else if(prefix===65)uf="MA";else if(prefix>=66&&prefix<=68)uf="PA";else if(prefix===69)uf="AM";else if(prefix>=70&&prefix<=72)uf="DF";else if(prefix>=73&&prefix<=76)uf="GO";else if(prefix===77)uf="TO";else if(prefix===78)uf="MT";else if(prefix===79)uf="MS";else if(prefix>=80&&prefix<=87)uf="PR";else if(prefix>=88&&prefix<=89)uf="SC";else if(prefix>=90&&prefix<=99)uf="RS";
- }
- const sud=["SP","RJ","MG","ES"],sul=["PR","SC","RS"],cen=["DF","GO","MT","MS"],ne=["BA","SE","AL","PE","PB","RN","CE","PI","MA"],no=["AM","PA","AC","RO","RR","AP","TO"];
- let price=24,min=6,max=10;
- if(uf==="SP"){price=14;min=2;max=5}else if(sud.includes(uf)){price=19;min=4;max=8}else if(sul.includes(uf)){price=23;min=5;max=9}else if(cen.includes(uf)){price=28;min=6;max=11}else if(ne.includes(uf)){price=34;min=8;max=14}else if(no.includes(uf)){price=42;min=10;max=18}
- if(Number(total||0)>=120)price=0;
- return{price,uf:uf||"BR",days:`${min} a ${max} dias úteis após o envio`,service:"Correios PAC"};
+const ADMIN_EMAIL = "mateusbpugli@gmail.com";
+const ADMIN_PASSWORD = "Mateus Buarque 1101";
+const CUSTOMER_KEY = "mblab_customer";
+
+function money(value) {
+  return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function slug(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || Math.random().toString(36).slice(2, 9);
+}
+
+function calculateShipping(cep, state, total) {
+  const clean = String(cep || "").replace(/\D/g, "");
+  if (clean.length < 8) return null;
+
+  let uf = String(state || "").toUpperCase().trim();
+  const prefix = Number(clean.slice(0, 2));
+
+  if (!uf) {
+    if (prefix >= 1 && prefix <= 19) uf = "SP";
+    else if (prefix >= 20 && prefix <= 28) uf = "RJ";
+    else if (prefix === 29) uf = "ES";
+    else if (prefix >= 30 && prefix <= 39) uf = "MG";
+    else if (prefix >= 40 && prefix <= 48) uf = "BA";
+    else if (prefix === 49) uf = "SE";
+    else if (prefix >= 50 && prefix <= 56) uf = "PE";
+    else if (prefix === 57) uf = "AL";
+    else if (prefix === 58) uf = "PB";
+    else if (prefix === 59) uf = "RN";
+    else if (prefix >= 60 && prefix <= 63) uf = "CE";
+    else if (prefix === 64) uf = "PI";
+    else if (prefix === 65) uf = "MA";
+    else if (prefix >= 66 && prefix <= 68) uf = "PA";
+    else if (prefix === 69) uf = "AM";
+    else if (prefix >= 70 && prefix <= 72) uf = "DF";
+    else if (prefix >= 73 && prefix <= 76) uf = "GO";
+    else if (prefix === 77) uf = "TO";
+    else if (prefix === 78) uf = "MT";
+    else if (prefix === 79) uf = "MS";
+    else if (prefix >= 80 && prefix <= 87) uf = "PR";
+    else if (prefix >= 88 && prefix <= 89) uf = "SC";
+    else if (prefix >= 90 && prefix <= 99) uf = "RS";
+  }
+
+  const sudeste = ["SP", "RJ", "MG", "ES"];
+  const sul = ["PR", "SC", "RS"];
+  const centro = ["DF", "GO", "MT", "MS"];
+  const nordeste = ["BA", "SE", "AL", "PE", "PB", "RN", "CE", "PI", "MA"];
+  const norte = ["AM", "PA", "AC", "RO", "RR", "AP", "TO"];
+
+  let price = 24, min = 6, max = 10;
+
+  if (uf === "SP") { price = 14; min = 2; max = 5; }
+  else if (sudeste.includes(uf)) { price = 19; min = 4; max = 8; }
+  else if (sul.includes(uf)) { price = 23; min = 5; max = 9; }
+  else if (centro.includes(uf)) { price = 28; min = 6; max = 11; }
+  else if (nordeste.includes(uf)) { price = 34; min = 8; max = 14; }
+  else if (norte.includes(uf)) { price = 42; min = 10; max = 18; }
+
+  if (Number(total || 0) >= 120) price = 0;
+
+  return {
+    price,
+    uf: uf || "BR",
+    service: "Correios PAC",
+    days: `${min} a ${max} dias úteis após o envio`
+  };
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(path, options);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.details || data.error || "Erro");
+  return data;
+}
+
+function bookToDb(book) {
+  return {
+    id: book.id || slug(book.title),
+    title: book.title,
+    description: book.description,
+    long_description: book.longDescription,
+    price: Number(book.price || 0),
+    old_price: Number(book.oldPrice || 0),
+    type: book.type,
+    stock: Number(book.stock || 0),
+    cover: book.cover || "/logo.jpeg",
+    active: Boolean(book.active)
+  };
+}
+
+function useRoute() {
+  const [route, setRoute] = useState(location.hash.replace("#", "") || "/");
+  useEffect(() => {
+    const onHash = () => setRoute(location.hash.replace("#", "") || "/");
+    addEventListener("hashchange", onHash);
+    return () => removeEventListener("hashchange", onHash);
+  }, []);
+  return route;
+}
+
+function useData() {
+  const [data, setData] = useState({ books: [], coupons: [], orders: [], customers: [] });
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const response = await api("/.netlify/functions/store-data");
+      setData({
+        books: response.books || [],
+        coupons: response.coupons || [],
+        orders: response.orders || [],
+        customers: response.customers || []
+      });
+    } catch (error) {
+      alert("Erro ao carregar dados: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+  return { data, loading, load };
+}
+
+function useCustomer() {
+  const [customer, setCustomer] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "null"); }
+    catch { return null; }
+  });
+
+  function save(customerData) {
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customerData));
+    setCustomer(customerData);
+  }
+
+  function logout() {
+    localStorage.removeItem(CUSTOMER_KEY);
+    setCustomer(null);
+  }
+
+  return { customer, save, logout };
+}
+
+function useCart(customer) {
+  const key = `mblab_cart_${customer?.email || "anon"}`;
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    try { setCart(JSON.parse(localStorage.getItem(key) || "[]")); }
+    catch { setCart([]); }
+  }, [key]);
+
+  function persist(next) {
+    setCart(next);
+    localStorage.setItem(key, JSON.stringify(next));
+  }
+
+  function add(book) {
+    if (!customer) {
+      location.hash = "/login";
+      return;
+    }
+    persist([{ bookId: book.id, qty: 1 }, ...cart.filter(item => item.bookId !== book.id)]);
+    location.hash = "/carrinho";
+  }
+
+  function remove(bookId) {
+    persist(cart.filter(item => item.bookId !== bookId));
+  }
+
+  function clear() {
+    persist([]);
+  }
+
+  return { cart, add, remove, clear };
+}
+
+function Header({ adminLogged, customer, customerLogout, cartCount }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <header>
+        <button onClick={() => setOpen(!open)} aria-label="Menu"><Menu /></button>
+        <a className="brand" href="#/"><img src="/logo.jpeg" alt="MBLab" />MBLab</a>
+        <nav className={open ? "open" : ""}>
+          <a href="#/">Início</a>
+          <a href="#/loja">Livros</a>
+          <a href="#/carrinho">Carrinho ({cartCount})</a>
+          <a href="#/minhas-compras">Minhas compras</a>
+          
+          {customer ? <button onClick={customerLogout}>Sair cliente</button> : <a href="#/login">Entrar</a>}
+        </nav>
+      </header>
+
+      <div className="cat">
+        <a href="#/loja">Todos</a>
+        <a href="#/loja/fisicos">Livros físicos</a>
+        <a href="#/loja/digitais">Livros digitais</a>
+        <a href="#/loja/promocoes">Promoções</a>
+      </div>
+
+      <div className="mobileBottomNav">
+        <a href="#/">Início</a>
+        <a href="#/loja">Livros</a>
+        <a href="#/carrinho">Carrinho {cartCount ? `(${cartCount})` : ""}</a>
+        <a href="#/minhas-compras">Compras</a>
+      </div>
+    </>
+  );
+}
+
+function Home({ data }) {
+  const books = data.books.filter(book => book.active);
+  const first = books[0];
+
+  return (
+    <>
+      <div className="desktopOnlyHome">
+        <section className="hero">
+          <div>
+            <p>Loja oficial</p>
+            <h1>MBLab</h1>
+            <h2>Trabalhamos com o politicamente f****</h2>
+            <a className="btn red" href="#/loja">Comprar livros</a>
+          </div>
+          <img src="/logo.jpeg" alt="MBLab" />
+        </section>
+        <Section title="Livros em destaque"><Grid books={books} /></Section>
+      </div>
+
+      <main className="mobileOnlyHome">
+        <section className="mHero">
+          <img src="/logo.jpeg" alt="MBLab" />
+          <p>Loja oficial MBLab</p>
+          <h1>Livros sem mimimi.</h1>
+          <a className="btn red" href="#/loja">Comprar agora</a>
+        </section>
+
+        <div className="mSearch" onClick={() => location.hash = "/loja"}>Pesquisar livros</div>
+
+        <div className="mChips">
+          <a href="#/loja">Todos</a>
+          <a href="#/loja/fisicos">Físicos</a>
+          <a href="#/loja/digitais">Digitais</a>
+          <a href="#/loja/promocoes">Promoções</a>
+        </div>
+
+        {first && (
+          <section className="mFeature">
+            <span>Destaque</span>
+            <img src={first.cover || "/logo.jpeg"} alt={first.title} />
+            <h2>{first.title}</h2>
+            <b>{money(first.price)}</b>
+            <a className="btn red" href={`#/livro/${first.id}`}>Ver livro</a>
+          </section>
+        )}
+
+        <section className="mShelf">
+          <h2>Livros disponíveis</h2>
+          <div>
+            {books.slice(0, 8).map(book => (
+              <a className="mBook" href={`#/livro/${book.id}`} key={book.id}>
+                <img src={book.cover || "/logo.jpeg"} alt={book.title} />
+                <strong>{book.title}</strong>
+                <small>{money(book.price)}</small>
+              </a>
+            ))}
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+
+function Section({ title, children }) {
+  return <section className="section"><h1>{title}</h1>{children}</section>;
+}
+
+function Grid({ books }) {
+  if (!books.length) return <div className="empty">Nenhum livro ativo.</div>;
+  return <div className="grid">{books.map(book => <BookCard key={book.id} book={book} />)}</div>;
+}
+
+function BookCard({ book }) {
+  return (
+    <article className="prod">
+      <a href={`#/livro/${book.id}`}><img src={book.cover || "/logo.jpeg"} alt={book.title} /></a>
+      <h2>{book.title}</h2>
+      <p>{book.description}</p>
+      {Number(book.old_price || 0) > 0 && <del>{money(book.old_price)}</del>}
+      <b>{money(book.price)}</b>
+      <a className="btn" href={`#/livro/${book.id}`}>Ver detalhes</a>
+    </article>
+  );
+}
+
+function Store({ data, category = "todos" }) {
+  let books = data.books.filter(book => book.active);
+
+  if (category === "fisicos") books = books.filter(book => String(book.type).toLowerCase().includes("físico") || String(book.type).toLowerCase().includes("fisico"));
+  if (category === "digitais") books = books.filter(book => String(book.type).toLowerCase().includes("digital"));
+  if (category === "promocoes") books = books.filter(book => Number(book.old_price || 0) > Number(book.price || 0));
+
+  return <Section title={category === "todos" ? "Todos os livros" : category === "fisicos" ? "Livros físicos" : category === "digitais" ? "Livros digitais" : "Promoções"}><Grid books={books} /></Section>;
+}
+
+function BookPage({ data, cart }) {
+  const book = data.books.find(item => item.id === location.hash.split("/")[2]);
+  if (!book) return <Section title="Livro não encontrado" />;
+
+  return (
+    <section className="detail">
+      <img src={book.cover || "/logo.jpeg"} alt={book.title} />
+      <div>
+        <h1>{book.title}</h1>
+        <p>{book.long_description || book.description}</p>
+        <b>{money(book.price)}</b>
+        <button className="btn red" onClick={() => cart.add(book)}><ShoppingCart /> Adicionar ao carrinho</button>
+      </div>
+    </section>
+  );
+}
+
+function Login({ data, customerSave, adminLogin }) {
+  const [mode, setMode] = useState("login");
+  const [show, setShow] = useState(false);
+  const [form, setForm] = useState({
+    name: "", email: "", password: "", phone: "", cpf: "",
+    cep: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: ""
+  });
+
+  async function submit(event) {
+    event.preventDefault();
+    const email = form.email.trim().toLowerCase();
+
+    if (!email || !form.password) return alert("Preencha e-mail e senha.");
+
+    if (mode === "login") {
+      if (email === ADMIN_EMAIL.toLowerCase() && form.password === ADMIN_PASSWORD) {
+        adminLogin(ADMIN_EMAIL, ADMIN_PASSWORD);
+        return;
+      }
+
+      const user = (data.customers || []).find(customer => customer.email === email && customer.password === form.password);
+      if (!user) return alert("Login incorreto ou cadastro não encontrado.");
+      customerSave(user);
+      location.hash = "/loja";
+      return;
+    }
+
+    if (!form.name) return alert("Preencha seu nome.");
+    const customer = { ...form, id: email, email };
+    await api("/.netlify/functions/store-data?table=customers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(customer)
+    });
+    customerSave(customer);
+    location.hash = "/loja";
+  }
+
+  return (
+    <section className="login">
+      <form className="box" onSubmit={submit}>
+        <h1>{mode === "login" ? "Entrar" : "Criar cadastro"}</h1>
+        {mode === "register" && <input placeholder="Nome completo" value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />}
+        <input placeholder="E-mail" type="email" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
+        <div className="pass">
+          <input placeholder="Senha" type={show ? "text" : "password"} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} />
+          <button type="button" onClick={() => setShow(!show)}>{show ? <EyeOff /> : <Eye />}</button>
+        </div>
+
+        {mode === "register" && (
+          <>
+            <input placeholder="WhatsApp" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
+            <input placeholder="CPF opcional" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
+            <h3>Endereço</h3>
+            <div className="shippingGrid">
+              <input placeholder="CEP" value={form.cep} onChange={event => setForm({ ...form, cep: event.target.value })} />
+              <input placeholder="UF" maxLength={2} value={form.state} onChange={event => setForm({ ...form, state: event.target.value.toUpperCase() })} />
+              <input placeholder="Rua" value={form.street} onChange={event => setForm({ ...form, street: event.target.value })} />
+              <input placeholder="Número" value={form.number} onChange={event => setForm({ ...form, number: event.target.value })} />
+              <input placeholder="Complemento" value={form.complement} onChange={event => setForm({ ...form, complement: event.target.value })} />
+              <input placeholder="Bairro" value={form.neighborhood} onChange={event => setForm({ ...form, neighborhood: event.target.value })} />
+              <input placeholder="Cidade" value={form.city} onChange={event => setForm({ ...form, city: event.target.value })} />
+            </div>
+          </>
+        )}
+
+        <button className="btn red full">{mode === "login" ? "Entrar" : "Cadastrar e entrar"}</button>
+        <button className="linkBtn" type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>{mode === "login" ? "Criar cadastro" : "Já tenho cadastro"}</button>
+      </form>
+    </section>
+  );
 }
 
 
-const mobileCss = `
-.shippingResult{border:1px solid #e7e7e7;background:#f8faff;border-radius:14px;padding:14px;display:grid;gap:4px;margin:6px 0}.shippingResult b{color:#1034b6}.shippingResult span{color:#e10600;font-weight:950;font-size:20px}.shippingResult small{color:#555}.grand{border-top:1px solid #eee;padding-top:10px;font-size:26px}
+function Cart({ data, cart, customer }) {
+  const [coupon, setCoupon] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [shippingCep, setShippingCep] = useState(customer?.cep || "");
+  const [shippingOptions, setShippingOptions] = useState([]);
+  const [selectedShipping, setSelectedShipping] = useState(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
 
-.mobileOnlyHome,.mobileBottomNav{display:none}
-@media(max-width:760px){
-body{overflow-x:hidden;background:#f6f6f6;padding-bottom:78px}
-.desktopOnlyHome{display:none!important}.mobileOnlyHome{display:block!important}
-header{height:64px!important;padding:0 14px!important;display:grid!important;grid-template-columns:44px 1fr 44px!important;background:rgba(255,255,255,.96)!important;backdrop-filter:blur(12px)!important}
-header .brand,.brand{justify-self:center!important;font-size:22px!important;gap:8px!important}.brand img{width:34px!important;height:34px!important}
-header>button{width:42px!important;height:42px!important;border-radius:999px!important;background:#f2f2f2!important;border:0!important}
-nav{display:none!important;position:absolute!important;top:64px!important;left:12px!important;right:12px!important;background:white!important;border:1px solid #eee!important;border-radius:18px!important;box-shadow:0 20px 45px rgba(0,0,0,.12)!important;padding:18px!important;z-index:99!important;flex-direction:column!important;gap:10px!important}
-nav.open{display:flex!important}nav a,nav button{padding:14px!important;background:#f7f7f7!important;border-radius:12px!important;text-align:left!important;font-size:14px!important}
-.cat{position:sticky!important;top:64px!important;z-index:20!important;display:flex!important;justify-content:flex-start!important;gap:10px!important;overflow-x:auto!important;white-space:nowrap!important;padding:12px 14px!important;background:white!important;border-bottom:1px solid #eee!important;scrollbar-width:none!important}
-.cat::-webkit-scrollbar{display:none}.cat a{flex:0 0 auto!important;border:1px solid #e7e7e7!important;border-radius:999px!important;padding:9px 13px!important;background:white!important;font-size:12px!important}
-.mobileBottomNav{display:grid!important;position:fixed!important;left:10px!important;right:10px!important;bottom:10px!important;grid-template-columns:repeat(4,1fr)!important;background:white!important;border:1px solid #e8e8e8!important;border-radius:20px!important;box-shadow:0 16px 40px rgba(0,0,0,.18)!important;z-index:999!important;overflow:hidden!important}
-.mobileBottomNav a{padding:13px 6px!important;text-align:center!important;font-size:11px!important;font-weight:950!important;text-transform:uppercase!important}
-.mHero{margin:14px!important;padding:28px 20px!important;border-radius:28px!important;background:linear-gradient(135deg,#fff 0%,#f4f6ff 100%)!important;box-shadow:0 18px 50px rgba(0,0,0,.08)!important}
-.mHero img{width:82px!important;height:82px!important;object-fit:contain!important;margin-bottom:18px!important}.mHero p{color:#1034b6!important;font-size:12px!important;font-weight:950!important;text-transform:uppercase!important;letter-spacing:1.8px!important;margin:0 0 8px!important}.mHero h1{font-size:42px!important;line-height:.94!important;color:#e10600!important;margin:0 0 20px!important}.mHero .btn{width:100%!important;border-radius:14px!important;min-height:52px!important}
-.mSearch{margin:0 14px 12px!important;padding:15px 18px!important;background:#fff!important;border:1px solid #eee!important;border-radius:999px!important;color:#777!important;font-weight:800!important;box-shadow:0 8px 24px rgba(0,0,0,.04)!important}
-.mChips{display:flex!important;gap:10px!important;overflow-x:auto!important;padding:0 14px 18px!important;scrollbar-width:none!important}.mChips::-webkit-scrollbar{display:none}.mChips a{flex:0 0 auto!important;background:#1034b6!important;color:white!important;border-radius:999px!important;padding:10px 14px!important;font-size:12px!important;font-weight:950!important;text-transform:uppercase!important}
-.mFeature{margin:0 14px 22px!important;padding:18px!important;background:white!important;border-radius:24px!important;box-shadow:0 14px 35px rgba(0,0,0,.08)!important;text-align:center!important}.mFeature span{display:inline-block!important;background:#e10600!important;color:white!important;border-radius:999px!important;padding:7px 10px!important;font-size:11px!important;font-weight:950!important;text-transform:uppercase!important;margin-bottom:14px!important}.mFeature img{width:min(72vw,280px)!important;aspect-ratio:3/4!important;object-fit:cover!important;border-radius:16px!important;border:1px solid #eee!important}.mFeature h2{font-size:26px!important;margin:16px 0 6px!important}.mFeature b{display:block!important;color:#e10600!important;font-size:28px!important;margin-bottom:14px!important}.mFeature .btn{width:100%!important;border-radius:14px!important}
-.mShelf{padding:0 14px 24px!important}.mShelf h2{font-size:24px!important;margin:0 0 14px!important}.mShelf>div{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}.mBook{background:white!important;border:1px solid #eee!important;border-radius:18px!important;padding:10px!important;display:grid!important;gap:8px!important}.mBook img{width:100%!important;aspect-ratio:3/4!important;object-fit:cover!important;border-radius:12px!important}.mBook strong{font-size:14px!important;line-height:1.2!important}.mBook small{color:#e10600!important;font-weight:950!important;font-size:15px!important}
-.section{padding:24px 14px!important}.section h1{font-size:30px!important;line-height:1.05!important}.grid{grid-template-columns:1fr!important;gap:14px!important}.prod,.product{background:#fff!important;border:1px solid #eee!important;border-radius:18px!important;padding:12px!important;display:grid!important;grid-template-columns:112px 1fr!important;gap:14px!important}.prod img,.product img{border-radius:14px!important;aspect-ratio:3/4!important;object-fit:cover!important}.prod h2,.product h2,.product h3{font-size:19px!important;margin:0!important}.prod p,.product p{font-size:13px!important}.prod .btn,.product .btn{width:100%!important;border-radius:12px!important;min-height:44px!important}
-.detail{display:block!important;padding:18px 14px!important}.detail img,.detailCover{width:100%!important;max-height:520px!important;object-fit:contain!important;background:white!important;border-radius:24px!important;padding:12px!important}.detail h1{font-size:34px!important;line-height:1!important}.detail .btn{width:100%!important;min-height:54px!important;border-radius:14px!important}
-.login{display:block!important;padding:24px 14px!important}.card,.box{border-radius:20px!important;padding:16px!important}.shippingGrid,.adminGrid,.orderCard{grid-template-columns:1fr!important}input,textarea,select{font-size:16px!important;min-height:48px!important;border-radius:12px!important}footer{display:none!important}
-}`;
-if(!document.getElementById("mobile-v8-style")){const s=document.createElement("style");s.id="mobile-v8-style";s.textContent=mobileCss;document.head.appendChild(s);}
+  const items = cart.cart.map(item => ({
+    book: data.books.find(book => book.id === item.bookId),
+    qty: item.qty
+  })).filter(item => item.book);
 
-const ADMIN_EMAIL="mateusbpugli@gmail.com",ADMIN_PASSWORD="Mateus Buarque 1101",CK="mblab_customer";
-const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}), slug=t=>String(t||Math.random()).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
-async function api(p,o={}){const r=await fetch(p,o),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.details||d.error||"Erro");return d}
-function useData(){const[data,setData]=useState({books:[],coupons:[],orders:[],customers:[]}),[loading,setLoading]=useState(true);async function load(){setLoading(true);try{setData(await api("/.netlify/functions/store-data"))}catch(e){alert(e.message)}finally{setLoading(false)}}useEffect(()=>{load()},[]);return{data,loading,load}}
-function useCustomer(){const[c,setC]=useState(()=>{try{return JSON.parse(localStorage.getItem(CK)||"null")}catch{return null}});return{customer:c,save:x=>{localStorage.setItem(CK,JSON.stringify(x));setC(x)},logout:()=>{localStorage.removeItem(CK);setC(null)}}}
-function useRoute(){const[r,setR]=useState(location.hash.replace("#","")||"/");useEffect(()=>{const f=()=>setR(location.hash.replace("#","")||"/");addEventListener("hashchange",f);return()=>removeEventListener("hashchange",f)},[]);return r}
-function useCart(customer){const k=`cart_${customer?.email||"anon"}`,[cart,setCart]=useState([]);useEffect(()=>{setCart(JSON.parse(localStorage.getItem(k)||"[]"))},[k]);function save(x){setCart(x);localStorage.setItem(k,JSON.stringify(x))}return{cart,add:b=>{if(!customer){location.hash="/login";return}save([{bookId:b.id,qty:1},...cart.filter(i=>i.bookId!==b.id)]);location.hash="/carrinho"},remove:id=>save(cart.filter(i=>i.bookId!==id)),clear:()=>save([])}}
-function Header(p){const[open,setOpen]=useState(false);return <><header><button onClick={()=>setOpen(!open)}><Menu/></button><a className="brand" href="#/"><img src="/logo.jpeg"/>MBLab</a><nav className={open?"open":""}><a href="#/">Início</a><a href="#/loja">Livros</a><a href="#/carrinho">Carrinho ({p.cartCount})</a><a href="#/minhas-compras">Minhas compras</a>{p.adminLogged&&<a href="#/admin">Admin</a>}{p.customer?<button onClick={p.customerLogout}>Sair cliente</button>:<a href="#/login">Entrar</a>}</nav></header><div className="cat"><a href="#/loja">Todos</a><a href="#/loja/fisicos">Livros físicos</a><a href="#/loja/digitais">Livros digitais</a><a href="#/loja/promocoes">Promoções</a></div><div className="mobileTabBar"><a href="#/">Início</a><a href="#/loja">Livros</a><a href="#/carrinho">Carrinho {p.cartCount?`(${p.cartCount})`:""}</a><a href="#/minhas-compras">Compras</a></div></>}
-function Home({data}){const books=data.books.filter(b=>b.active),first=books[0];return <><div className="desktopHome"><section className="hero"><div><p>Loja oficial</p><h1>MBLab</h1><h2>Trabalhamos com o politicamente f****</h2><a className="btn red" href="#/loja">Comprar livros</a></div><img src="/logo.jpeg"/></section><Section title="Livros em destaque"><Grid books={books}/></Section></div><main className="mobileHome"><section className="mobileHero"><img src="/logo.jpeg"/><p>Loja oficial MBLab</p><h1>Livros sem mimimi.</h1><a className="btn red" href="#/loja">Comprar agora</a></section><div className="mobileSearch" onClick={()=>location.hash="/loja"}>Pesquisar livros</div><div className="mobileChips"><a href="#/loja">Todos</a><a href="#/loja/fisicos">Físicos</a><a href="#/loja/digitais">Digitais</a><a href="#/loja/promocoes">Promoções</a></div>{first&&<section className="mobileFeature"><span>Novo destaque</span><img src={first.cover||"/logo.jpeg"}/><h2>{first.title}</h2><b>{money(first.price)}</b><a className="btn red" href={`#/livro/${first.id}`}>Ver livro</a></section>}<section className="mobileShelf"><h2>Livros disponíveis</h2><div>{books.slice(0,6).map(b=><a className="mobileBook" href={`#/livro/${b.id}`} key={b.id}><img src={b.cover||"/logo.jpeg"}/><strong>{b.title}</strong><small>{money(b.price)}</small></a>)}</div></section></main></>}
-function Section({title,children}){return <section className="section"><h1>{title}</h1>{children}</section>}
-function Store({data,cat="todos"}){let b=data.books.filter(x=>x.active);if(cat==="fisicos")b=b.filter(x=>String(x.type).toLowerCase().includes("físico")||String(x.type).toLowerCase().includes("fisico"));if(cat==="digitais")b=b.filter(x=>String(x.type).toLowerCase().includes("digital"));if(cat==="promocoes")b=b.filter(x=>Number(x.old_price)>Number(x.price));return <Section title={cat==="todos"?"Todos os livros":cat==="fisicos"?"Livros físicos":cat==="digitais"?"Livros digitais":"Promoções"}><Grid books={b}/></Section>}
-function Grid({books}){return books.length?<div className="grid">{books.map(b=><div className="card prod" key={b.id}><a href={`#/livro/${b.id}`}><img src={b.cover||"/logo.jpeg"}/></a><h2>{b.title}</h2><p>{b.description}</p><b>{money(b.price)}</b><a className="btn" href={`#/livro/${b.id}`}>Ver detalhes</a></div>)}</div>:<div className="empty">Nenhum livro.</div>}
-function Book({data,cart}){const b=data.books.find(x=>x.id===location.hash.split("/")[2]);if(!b)return <Section title="Não encontrado"/>;return <section className="detail"><img src={b.cover||"/logo.jpeg"}/><div><h1>{b.title}</h1><p>{b.long_description||b.description}</p><b>{money(b.price)}</b><button className="btn red" onClick={()=>cart.add(b)}><ShoppingCart/>Adicionar ao carrinho</button></div></section>}
-function Login({data,save}){const[mode,setMode]=useState("login"),[show,setShow]=useState(false),[f,setF]=useState({name:"",email:"",password:"",phone:"",cep:"",street:"",number:"",complement:"",neighborhood:"",city:"",state:""});async function sub(e){e.preventDefault();const email=f.email.toLowerCase().trim();if(mode==="login"){const u=data.customers.find(c=>c.email===email&&c.password===f.password);if(!u)return alert("Login incorreto");save(u);location.hash="/loja";return}const u={...f,id:email,email};await api("/.netlify/functions/store-data?table=customers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(u)});save(u);location.hash="/loja"}return <section className="login"><form className="box" onSubmit={sub}><h1>{mode==="login"?"Entrar":"Cadastrar"}</h1>{mode==="register"&&<><input placeholder="Nome" value={f.name} onChange={e=>setF({...f,name:e.target.value})}/><input placeholder="WhatsApp" value={f.phone} onChange={e=>setF({...f,phone:e.target.value})}/><input placeholder="CEP" value={f.cep} onChange={e=>setF({...f,cep:e.target.value})}/><input placeholder="Rua" value={f.street} onChange={e=>setF({...f,street:e.target.value})}/><input placeholder="Número" value={f.number} onChange={e=>setF({...f,number:e.target.value})}/><input placeholder="Complemento" value={f.complement} onChange={e=>setF({...f,complement:e.target.value})}/><input placeholder="Bairro" value={f.neighborhood} onChange={e=>setF({...f,neighborhood:e.target.value})}/><input placeholder="Cidade" value={f.city} onChange={e=>setF({...f,city:e.target.value})}/><input placeholder="Estado" value={f.state} onChange={e=>setF({...f,state:e.target.value.toUpperCase()})}/></>}<input placeholder="Email" value={f.email} onChange={e=>setF({...f,email:e.target.value})}/><div className="pass"><input placeholder="Senha" type={show?"text":"password"} value={f.password} onChange={e=>setF({...f,password:e.target.value})}/><button type="button" onClick={()=>setShow(!show)}>{show?<EyeOff/>:<Eye/>}</button></div><button className="btn red">{mode==="login"?"Entrar":"Cadastrar e entrar"}</button><button type="button" className="link" onClick={()=>setMode(mode==="login"?"register":"login")}>{mode==="login"?"Criar cadastro":"Já tenho cadastro"}</button></form></section>}
-function Cart({data,cart,customer}){
- const[coupon,setCoupon]=useState(""),[loading,setLoading]=useState(false);
- const[shippingCep,setShippingCep]=useState(customer?.cep||""),[shippingState,setShippingState]=useState(customer?.state||""),[shipping,setShipping]=useState(null);
- const items=cart.cart.map(i=>({book:data.books.find(b=>b.id===i.bookId),qty:i.qty})).filter(i=>i.book);
- const cp=data.coupons.find(c=>c.active&&c.code?.toLowerCase()===coupon.toLowerCase());
- let productsTotal=items.reduce((s,i)=>s+Number(i.book.price)*i.qty,0);
- if(cp){if(cp.type==="percent")productsTotal-=productsTotal*Number(cp.value)/100;else productsTotal-=Number(cp.value)}
- productsTotal=Math.max(.01,+productsTotal.toFixed(2));
- const shippingValue=shipping?Number(shipping.price||0):0,total=+(productsTotal+shippingValue).toFixed(2);
- function simulateShipping(){const r=calculateShipping(shippingCep,shippingState,productsTotal);if(!r)return alert("Preencha CEP com 8 números.");setShipping(r)}
- async function pay(){if(!customer){location.hash="/login";return}if(!items.length)return alert("Carrinho vazio");let currentShipping=shipping;if(!currentShipping){currentShipping=calculateShipping(shippingCep,shippingState,productsTotal);if(!currentShipping)return alert("Preencha CEP com 8 números para calcular o frete.");setShipping(currentShipping)}setLoading(true);try{const title=items.map(i=>i.book.title).join(", ");const buyer={...customer,cep:shippingCep,state:(currentShipping.uf||shippingState)};const finalTotal=Number((productsTotal+Number(currentShipping.price||0)).toFixed(2));const order={id:`PED-${Date.now()}`,status:"Aguardando pagamento",tracking_code:"",book_title:title,final_price:finalTotal,coupon:cp?.code||"",buyer,shipping:currentShipping};await api("/.netlify/functions/store-data?table=orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(order)});const res=await api("/.netlify/functions/create-payment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:`${title} - ${order.id} (com frete)`,price:finalTotal,email:customer.email,orderId:order.id})});cart.clear();location.href=res.init_point||res.sandbox_init_point}catch(e){alert("Erro: "+e.message)}finally{setLoading(false)}}
- return <section className="section"><h1>Carrinho</h1>{!items.length&&<div className="empty">Seu carrinho está vazio.</div>}{items.map(i=><div className="cart" key={i.book.id}><img src={i.book.cover}/><div><h3>{i.book.title}</h3><p>{money(i.book.price)}</p></div><button onClick={()=>cart.remove(i.book.id)}>Remover</button></div>)}{!!items.length&&<div className="box checkout"><input placeholder="Cupom" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())}/><h3 className="shippingTitle">Frete e prazo pelos Correios</h3><div className="shippingGrid"><input placeholder="CEP" value={shippingCep} onChange={e=>{setShippingCep(e.target.value);setShipping(null)}}/><input placeholder="UF" maxLength={2} value={shippingState} onChange={e=>{setShippingState(e.target.value.toUpperCase());setShipping(null)}}/></div><button type="button" className="btn outline full" onClick={simulateShipping}>Calcular frete</button>{shipping&&<div className="shippingResult"><b>{shipping.service}</b><span>{shipping.price===0?"Frete grátis":money(shipping.price)}</span><small>Prazo: {shipping.days}</small><small>Destino estimado: {shipping.uf}</small></div>}<div className="total"><span>Produtos</span><b>{money(productsTotal)}</b></div>{shipping&&<div className="total"><span>Frete</span><b>{shipping.price===0?"Grátis":money(shipping.price)}</b></div>}<div className="total grand"><span>Total</span><b>{money(total)}</b></div><button className="btn red full" onClick={pay} disabled={loading}>{loading?"Abrindo Mercado Pago...":"Comprar com Pix ou Cartão"}</button></div>}</section>}
-function MyPurchases({customer}){const[orders,setOrders]=useState([]);async function load(){if(!customer)return location.hash="/login";const r=await api(`/.netlify/functions/store-data?table=orders&email=${encodeURIComponent(customer.email)}`);setOrders(r.orders||[])}useEffect(()=>{load()},[customer?.email]);return <Section title="Minhas compras"><button className="btn" onClick={load}>Atualizar</button>{orders.map(o=><div className="box order" key={o.id}><h2>{o.book_title}</h2><p><b>Código:</b> {o.id}</p><p><b>Status:</b> {o.status}</p><p><b>Rastreio:</b> {o.tracking_code||"Ainda não enviado"}</p><b>{money(o.final_price)}</b></div>)}</Section>}
-function Admin({data,load,logged,login,logout}){const[email,setEmail]=useState(ADMIN_EMAIL),[pw,setPw]=useState("");if(!logged)return <section className="login"><form className="box" onSubmit={e=>{e.preventDefault();login(email,pw)}}><h1>Admin</h1><input value={email} onChange={e=>setEmail(e.target.value)}/><input placeholder="Senha" type="password" value={pw} onChange={e=>setPw(e.target.value)}/><button className="btn red">Entrar</button></form></section>;return <Section title="Painel Admin"><button className="btn" onClick={logout}>Sair admin</button><AdminBooks data={data} load={load}/><AdminCoupons data={data} load={load}/><AdminOrders data={data} load={load}/></Section>}
-function AdminBooks({data,load}){const empty={title:"",description:"",longDescription:"",price:0,oldPrice:0,type:"Físico",stock:0,cover:"",active:true},[f,setF]=useState(empty);function upload(e){const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>setF({...f,cover:String(r.result)});r.readAsDataURL(file)}async function save(){const body={id:f.id||slug(f.title),title:f.title,description:f.description,long_description:f.longDescription,price:+f.price,old_price:+f.oldPrice,type:f.type,stock:+f.stock,cover:f.cover,active:f.active};await api("/.netlify/functions/store-data?table=books",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});setF(empty);load()}return <div className="box"><h2>Livros</h2>{["title","description","longDescription","price","oldPrice","stock"].map(k=><input key={k} placeholder={k} value={f[k]} onChange={e=>setF({...f,[k]:e.target.value})}/>) }<select value={f.type} onChange={e=>setF({...f,type:e.target.value})}><option>Físico</option><option>Digital</option></select><input type="file" onChange={upload}/>{f.cover&&<img className="prev" src={f.cover}/>}<button className="btn red" onClick={save}><Plus/>Salvar livro</button>{data.books.map(b=><p key={b.id}>{b.title} <button onClick={()=>setF({id:b.id,title:b.title,description:b.description,longDescription:b.long_description,price:b.price,oldPrice:b.old_price,type:b.type,stock:b.stock,cover:b.cover,active:b.active})}><Pencil size={14}/></button><button onClick={async()=>{await api(`/.netlify/functions/store-data?table=books&id=${b.id}`,{method:"DELETE"});load()}}><Trash2 size={14}/></button></p>)}</div>}
-function AdminCoupons({data,load}){const[f,setF]=useState({code:"",type:"percent",value:10,active:true});async function save(){await api("/.netlify/functions/store-data?table=coupons",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:f.code.toUpperCase(),code:f.code.toUpperCase(),type:f.type,value:+f.value,active:f.active})});load()}return <div className="box"><h2>Cupons</h2><input placeholder="Código" value={f.code} onChange={e=>setF({...f,code:e.target.value.toUpperCase()})}/><select value={f.type} onChange={e=>setF({...f,type:e.target.value})}><option value="percent">%</option><option value="fixed">R$</option></select><input value={f.value} onChange={e=>setF({...f,value:e.target.value})}/><button className="btn red" onClick={save}>Salvar cupom</button>{data.coupons.map(c=><p key={c.id}>{c.code}</p>)}</div>}
-function isCanceledStatus(status){const s=String(status||"").toLowerCase();return s.includes("cancel")||s.includes("recus")||s.includes("estorn")||s.includes("chargeback")}
-function AdminOrders({data,load}){const[tab,setTab]=useState("ativos");async function upd(id,b){await api(`/.netlify/functions/store-data?table=orders&id=${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});load()}const ativos=(data.orders||[]).filter(o=>!isCanceledStatus(o.status));const cancelados=(data.orders||[]).filter(o=>isCanceledStatus(o.status));const list=tab==="cancelados"?cancelados:ativos;return <div className="box"><div className="adminOrdersHead"><h2>Pedidos</h2><button className={tab==="ativos"?"btn red":"btn"} onClick={()=>setTab("ativos")}>Ativos ({ativos.length})</button><button className={tab==="cancelados"?"btn red":"btn"} onClick={()=>setTab("cancelados")}>Cancelados ({cancelados.length})</button><button className="btn" onClick={load}>Atualizar</button></div>{!list.length&&<div className="empty">Nenhum pedido nesta aba.</div>}{list.map(o=><div className="order" key={o.id}><h3>{o.book_title}</h3><p><b>Código:</b> {o.id}</p><p><b>Status:</b> {o.status}</p><p><b>Cliente:</b> {o.buyer?.name} - {o.buyer?.email}</p><p><b>Endereço:</b> {o.buyer?.street}, {o.buyer?.number} - {o.buyer?.city}/{o.buyer?.state}</p><p><b>Valor:</b> {money(o.final_price)}</p><select value={o.status||"Aguardando pagamento"} onChange={e=>upd(o.id,{status:e.target.value})}><option>Aguardando pagamento</option><option>Pago</option><option>Separando pedido</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option><option>Cancelado pelo cliente</option><option>Pagamento recusado</option><option>Estornado</option><option>Chargeback</option></select><input placeholder="Rastreio" defaultValue={o.tracking_code||""} onBlur={e=>upd(o.id,{tracking_code:e.target.value})}/></div>)}</div>}
-function App(){const{data,loading,load}=useData(),{customer,save,logout}=useCustomer(),cart=useCart(customer),route=useRoute(),[admin,setAdmin]=useState(localStorage.getItem("admin")==="yes");function adminLogin(e,p){if(e===ADMIN_EMAIL&&p===ADMIN_PASSWORD){localStorage.setItem("admin","yes");setAdmin(true);location.hash="/admin"}else alert("Login incorreto")}function adminLogout(){localStorage.removeItem("admin");setAdmin(false);location.hash="/"}let page=<Home data={data}/>;if(loading)page=<Section title="Carregando..."/>;else if(route==="/loja")page=<Store data={data}/>;else if(route==="/loja/fisicos")page=<Store data={data} cat="fisicos"/>;else if(route==="/loja/digitais")page=<Store data={data} cat="digitais"/>;else if(route==="/loja/promocoes")page=<Store data={data} cat="promocoes"/>;else if(route.startsWith("/livro/"))page=<Book data={data} cart={cart}/>;else if(route==="/login")page=<Login data={data} save={save}/>;else if(route==="/carrinho")page=<Cart data={data} cart={cart} customer={customer}/>;else if(route==="/minhas-compras")page=<MyPurchases customer={customer}/>;else if(route==="/admin")page=<Admin data={data} load={load} logged={admin} login={adminLogin} logout={adminLogout}/>;else if(route.startsWith("/pagamento/"))page=<Section title="Pagamento"><a className="btn red" href="#/minhas-compras">Ver minhas compras</a></Section>;return <><Header adminLogged={admin} customer={customer} customerLogout={logout} cartCount={cart.cart.length}/>{page}<footer><b>MBLab</b><span>Loja oficial de livros</span></footer></>}
-createRoot(document.getElementById("root")).render(<App/>)
+  const activeCoupon = data.coupons.find(couponItem => couponItem.active && couponItem.code?.toLowerCase() === coupon.toLowerCase());
+
+  let productsTotal = items.reduce((sum, item) => sum + Number(item.book.price) * item.qty, 0);
+  if (activeCoupon) {
+    if (activeCoupon.type === "percent") productsTotal -= productsTotal * Number(activeCoupon.value) / 100;
+    else productsTotal -= Number(activeCoupon.value);
+  }
+  productsTotal = Math.max(0.01, Number(productsTotal.toFixed(2)));
+
+  const shippingValue = selectedShipping ? Number(selectedShipping.price || 0) : 0;
+  const total = Number((productsTotal + shippingValue).toFixed(2));
+
+  async function calculateRealShipping() {
+    if (!shippingCep || String(shippingCep).replace(/\D/g, "").length !== 8) {
+      alert("Preencha o CEP com 8 números.");
+      return;
+    }
+
+    if (!items.length) return alert("Carrinho vazio.");
+
+    setShippingLoading(true);
+    setSelectedShipping(null);
+    setShippingOptions([]);
+
+    try {
+      const response = await api("/.netlify/functions/melhorenvio-calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toCep: shippingCep,
+          total: productsTotal,
+          items: items.map(item => ({
+            id: item.book.id,
+            price: Number(item.book.price || 0),
+            quantity: item.qty
+          }))
+        })
+      });
+
+      const services = response.services || [];
+      if (!services.length) {
+        alert("Nenhuma opção de PAC/SEDEX disponível para esse CEP.");
+        return;
+      }
+
+      setShippingOptions(services);
+      setSelectedShipping(services[0]);
+    } catch (error) {
+      alert("Erro no Melhor Envio: " + error.message);
+    } finally {
+      setShippingLoading(false);
+    }
+  }
+
+  async function pay() {
+    if (!customer) {
+      location.hash = "/login";
+      return;
+    }
+
+    if (!items.length) return alert("Carrinho vazio.");
+    if (!selectedShipping) return alert("Calcule e selecione o frete antes de pagar.");
+
+    setLoading(true);
+
+    try {
+      const title = items.map(item => item.book.title).join(", ");
+      const buyer = { ...customer, cep: shippingCep };
+
+      const order = {
+        id: `PED-${Date.now()}`,
+        status: "Aguardando pagamento",
+        tracking_code: "",
+        book_title: title,
+        final_price: total,
+        coupon: activeCoupon?.code || "",
+        buyer,
+        shipping: selectedShipping,
+        melhor_envio_service_id: String(selectedShipping.service_id || selectedShipping.id)
+      };
+
+      await api("/.netlify/functions/store-data?table=orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order)
+      });
+
+      const response = await api("/.netlify/functions/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `${title} - ${order.id} (produto + frete)`,
+          price: total,
+          email: customer.email,
+          orderId: order.id
+        })
+      });
+
+      cart.clear();
+      location.href = response.init_point || response.sandbox_init_point;
+    } catch (error) {
+      alert("Erro: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="section">
+      <h1>Carrinho</h1>
+      {!items.length && <div className="empty">Seu carrinho está vazio.</div>}
+
+      {items.map(item => (
+        <div className="cart" key={item.book.id}>
+          <img src={item.book.cover || "/logo.jpeg"} alt={item.book.title} />
+          <div>
+            <h3>{item.book.title}</h3>
+            <p>{money(item.book.price)}</p>
+          </div>
+          <button onClick={() => cart.remove(item.book.id)}>Remover</button>
+        </div>
+      ))}
+
+      {!!items.length && (
+        <div className="box checkout">
+          <input placeholder="Cupom" value={coupon} onChange={event => setCoupon(event.target.value.toUpperCase())} />
+
+          <h3>Frete e prazo pelo Melhor Envio</h3>
+          <div className="shippingGrid">
+            <input placeholder="CEP de entrega" value={shippingCep} onChange={event => { setShippingCep(event.target.value); setShippingOptions([]); setSelectedShipping(null); }} />
+          </div>
+          <button type="button" className="btn full" onClick={calculateRealShipping} disabled={shippingLoading}>
+            {shippingLoading ? "Calculando..." : "Calcular PAC/SEDEX"}
+          </button>
+
+          {!!shippingOptions.length && (
+            <div className="shippingOptions">
+              {shippingOptions.map(option => (
+                <label className={selectedShipping?.id === option.id ? "shippingOption active" : "shippingOption"} key={option.id}>
+                  <input
+                    type="radio"
+                    name="shipping"
+                    checked={selectedShipping?.id === option.id}
+                    onChange={() => setSelectedShipping(option)}
+                  />
+                  <strong>{option.company} - {option.name}</strong>
+                  <span>{money(option.price)}</span>
+                  <small>{option.custom_delivery_time || option.delivery_time} dias úteis após o envio</small>
+                </label>
+              ))}
+            </div>
+          )}
+
+          <div className="total"><span>Produtos</span><b>{money(productsTotal)}</b></div>
+          {selectedShipping && <div className="total"><span>Frete</span><b>{money(selectedShipping.price)}</b></div>}
+          <div className="total grand"><span>Total</span><b>{money(total)}</b></div>
+
+          <button className="btn red full" onClick={pay} disabled={loading}>{loading ? "Abrindo Mercado Pago..." : "Comprar com Pix ou Cartão"}</button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MyPurchases({ customer }) {
+  const [orders, setOrders] = useState([]);
+
+  async function refresh() {
+    if (!customer) {
+      location.hash = "/login";
+      return;
+    }
+    const response = await api(`/.netlify/functions/store-data?table=orders&email=${encodeURIComponent(customer.email)}`);
+    setOrders(response.orders || []);
+  }
+
+  useEffect(() => { refresh(); }, [customer?.email]);
+
+  return (
+    <Section title="Minhas compras">
+      <button className="btn" onClick={refresh}>Atualizar</button>
+      {!orders.length && <div className="empty">Nenhuma compra encontrada.</div>}
+      <div className="ordersList">
+        {orders.map(order => (
+          <div className="order" key={order.id}>
+            <h3>{order.book_title}</h3>
+            <p><b>Código:</b> {order.id}</p>
+            <p><b>Status:</b> {order.status}</p>
+            <p><b>Valor:</b> {money(order.final_price)}</p>
+            <p><b>Rastreio:</b> {order.tracking_code || "Ainda não enviado"}</p>{order.shipping && <p><b>Frete:</b> {order.shipping.company || "Correios"} - {order.shipping.name} - {money(order.shipping.price)}</p>}{order.melhor_envio_label_url && <p><a className="btn" href={order.melhor_envio_label_url} target="_blank">Ver etiqueta</a></p>}
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function Admin({ data, load, logged, login, logout }) {
+  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+
+  if (!logged) {
+    return (
+      <section className="login">
+        <form className="box" onSubmit={event => { event.preventDefault(); login(email, password); }}>
+          <h1>Admin</h1>
+          <input value={email} onChange={event => setEmail(event.target.value)} />
+          <div className="pass">
+            <input placeholder="Senha" type={show ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} />
+            <button type="button" onClick={() => setShow(!show)}>{show ? <EyeOff /> : <Eye />}</button>
+          </div>
+          <button className="btn red full">Entrar</button>
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <Section title="Painel Admin">
+      <button className="btn" onClick={logout}>Sair</button>
+      <div className="adminGrid">
+        <BooksAdmin data={data} load={load} />
+        <CouponsAdmin data={data} load={load} />
+      </div>
+      <OrdersAdmin data={data} load={load} />
+    </Section>
+  );
+}
+
+function BooksAdmin({ data, load }) {
+  const empty = { id: "", title: "", description: "", longDescription: "", price: 0, oldPrice: 0, type: "Físico", stock: 0, cover: "", active: true };
+  const [form, setForm] = useState(empty);
+
+  function upload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm({ ...form, cover: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
+
+  async function save() {
+    if (!form.title) return alert("Título obrigatório.");
+    await api("/.netlify/functions/store-data?table=books", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookToDb(form))
+    });
+    setForm(empty);
+    load();
+  }
+
+  async function remove(id) {
+    if (!confirm("Apagar livro?")) return;
+    await api(`/.netlify/functions/store-data?table=books&id=${id}`, { method: "DELETE" });
+    load();
+  }
+
+  return (
+    <div className="box adminBox">
+      <h2>Livros</h2>
+      <input placeholder="Título" value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} />
+      <input placeholder="Descrição curta" value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} />
+      <textarea placeholder="Descrição completa" value={form.longDescription} onChange={event => setForm({ ...form, longDescription: event.target.value })} />
+      <input placeholder="Preço" type="number" value={form.price} onChange={event => setForm({ ...form, price: event.target.value })} />
+      <input placeholder="Preço antigo" type="number" value={form.oldPrice} onChange={event => setForm({ ...form, oldPrice: event.target.value })} />
+      <select value={form.type} onChange={event => setForm({ ...form, type: event.target.value })}><option>Físico</option><option>Digital</option></select>
+      <input placeholder="Estoque" type="number" value={form.stock} onChange={event => setForm({ ...form, stock: event.target.value })} />
+      <input type="file" accept="image/*" onChange={upload} />
+      {form.cover && <img className="preview" src={form.cover} alt="Prévia" />}
+      <label><input type="checkbox" checked={form.active} onChange={event => setForm({ ...form, active: event.target.checked })} /> Ativo</label>
+      <button className="btn red full" onClick={save}><Plus /> Salvar livro</button>
+
+      <div className="list">
+        {data.books.map(book => (
+          <div className="row" key={book.id}>
+            <span>{book.title}</span>
+            <button onClick={() => setForm({ id: book.id, title: book.title, description: book.description, longDescription: book.long_description, price: book.price, oldPrice: book.old_price, type: book.type, stock: book.stock, cover: book.cover, active: book.active })}><Pencil size={16} /></button>
+            <button onClick={() => remove(book.id)}><Trash2 size={16} /></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CouponsAdmin({ data, load }) {
+  const [form, setForm] = useState({ code: "", type: "percent", value: 10, active: true });
+
+  async function save() {
+    if (!form.code) return alert("Código obrigatório.");
+    await api("/.netlify/functions/store-data?table=coupons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: form.code.toUpperCase(), code: form.code.toUpperCase(), type: form.type, value: Number(form.value), active: form.active })
+    });
+    setForm({ code: "", type: "percent", value: 10, active: true });
+    load();
+  }
+
+  async function remove(id) {
+    await api(`/.netlify/functions/store-data?table=coupons&id=${id}`, { method: "DELETE" });
+    load();
+  }
+
+  return (
+    <div className="box adminBox">
+      <h2>Cupons</h2>
+      <input placeholder="Código" value={form.code} onChange={event => setForm({ ...form, code: event.target.value.toUpperCase() })} />
+      <select value={form.type} onChange={event => setForm({ ...form, type: event.target.value })}><option value="percent">Porcentagem %</option><option value="fixed">Valor fixo R$</option></select>
+      <input type="number" value={form.value} onChange={event => setForm({ ...form, value: event.target.value })} />
+      <label><input type="checkbox" checked={form.active} onChange={event => setForm({ ...form, active: event.target.checked })} /> Ativo</label>
+      <button className="btn red full" onClick={save}>Salvar cupom</button>
+
+      <div className="list">
+        {data.coupons.map(coupon => (
+          <div className="row" key={coupon.id}>
+            <span>{coupon.code}</span>
+            <button onClick={() => setForm(coupon)}><Pencil size={16} /></button>
+            <button onClick={() => remove(coupon.id)}><Trash2 size={16} /></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OrdersAdmin({ data, load }) {
+  const [tab, setTab] = useState("ativos");
+
+  const cancelledStatuses = ["Cancelado", "Cancelado pelo cliente", "Pagamento recusado", "Estornado", "Chargeback"];
+  const orders = tab === "cancelados"
+    ? data.orders.filter(order => cancelledStatuses.includes(order.status))
+    : data.orders.filter(order => !cancelledStatuses.includes(order.status));
+
+  async function update(id, body) {
+    await api(`/.netlify/functions/store-data?table=orders&id=${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    load();
+  }
+
+  async function generateLabel(id) {
+    if (!confirm("Gerar etiqueta do Melhor Envio para este pedido?")) return;
+
+    try {
+      const response = await api("/.netlify/functions/melhorenvio-label", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: id })
+      });
+
+      if (response.labelUrl) window.open(response.labelUrl, "_blank");
+      alert("Etiqueta gerada. O pedido foi atualizado.");
+      load();
+    } catch (error) {
+      alert("Erro ao gerar etiqueta: " + error.message);
+    }
+  }
+
+  return (
+    <div className="box adminBox">
+      <div className="adminOrdersHead">
+        <h2>Pedidos</h2>
+        <button className={tab === "ativos" ? "btn red" : "btn"} onClick={() => setTab("ativos")}>Ativos</button>
+        <button className={tab === "cancelados" ? "btn red" : "btn"} onClick={() => setTab("cancelados")}>Cancelados</button>
+      </div>
+
+      {!orders.length && <p>Nenhum pedido nesta aba.</p>}
+
+      {orders.map(order => (
+        <div className="order" key={order.id}>
+          <h3>{order.book_title}</h3>
+          <p><b>Código:</b> {order.id}</p>
+          <p><b>Cliente:</b> {order.buyer?.name}</p>
+          <p><b>Email:</b> {order.buyer?.email}</p>
+          <p><b>Valor:</b> {money(order.final_price)}</p>
+          <p><b>Endereço:</b> {order.buyer?.street}, {order.buyer?.number} - {order.buyer?.city}/{order.buyer?.state}</p>
+          {order.shipping && <p><b>Frete:</b> {order.shipping.company || "Correios"} - {order.shipping.name} - {money(order.shipping.price)}</p>}
+          {order.melhor_envio_label_url && <p><a className="btn" href={order.melhor_envio_label_url} target="_blank">Abrir etiqueta</a></p>}
+
+          <select value={order.status || "Aguardando pagamento"} onChange={event => update(order.id, { status: event.target.value })}>
+            <option>Aguardando pagamento</option>
+            <option>Pago</option>
+            <option>Separando pedido</option>
+            <option>Enviado</option>
+            <option>Entregue</option>
+            <option>Cancelado pelo cliente</option>
+            <option>Pagamento recusado</option>
+            <option>Estornado</option>
+            <option>Chargeback</option>
+          </select>
+
+          <input placeholder="Código de rastreio" defaultValue={order.tracking_code || ""} onBlur={event => update(order.id, { tracking_code: event.target.value })} />
+          <button className="btn red full" onClick={() => generateLabel(order.id)} disabled={!!order.melhor_envio_order_id}>{order.melhor_envio_order_id ? "Etiqueta gerada" : "Gerar etiqueta"}</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatusPage() {
+  return (
+    <Section title="Status do pagamento">
+      <p>Veja o status em Minhas compras.</p>
+      <a className="btn red" href="#/minhas-compras">Ir para minhas compras</a>
+    </Section>
+  );
+}
+
+function App() {
+  const route = useRoute();
+  const { data, loading, load } = useData();
+  const { customer, save: saveCustomer, logout: customerLogout } = useCustomer();
+  const cart = useCart(customer);
+  const [adminLogged, setAdminLogged] = useState(() => localStorage.getItem("mblab_admin") === "yes");
+
+  function adminLogin(email, password) {
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      localStorage.setItem("mblab_admin", "yes");
+      setAdminLogged(true);
+      location.hash = "/admin";
+    } else {
+      alert("Login incorreto.");
+    }
+  }
+
+  function adminLogout() {
+    localStorage.removeItem("mblab_admin");
+    setAdminLogged(false);
+    location.hash = "/";
+  }
+
+  let page = <Home data={data} />;
+
+  if (loading) page = <Section title="Carregando..." />;
+  else if (route === "/loja") page = <Store data={data} />;
+  else if (route === "/loja/fisicos") page = <Store data={data} category="fisicos" />;
+  else if (route === "/loja/digitais") page = <Store data={data} category="digitais" />;
+  else if (route === "/loja/promocoes") page = <Store data={data} category="promocoes" />;
+  else if (route.startsWith("/livro/")) page = <BookPage data={data} cart={cart} />;
+  else if (route === "/login") page = <Login data={data} customerSave={saveCustomer} adminLogin={adminLogin} />;
+  else if (route === "/carrinho") page = <Cart data={data} cart={cart} customer={customer} />;
+  else if (route === "/minhas-compras") page = <MyPurchases customer={customer} />;
+  else if (route === "/admin") page = <Admin data={data} load={load} logged={adminLogged} login={adminLogin} logout={adminLogout} />;
+  else if (route.startsWith("/pagamento/")) page = <StatusPage />;
+
+  return (
+    <>
+      <Header adminLogged={adminLogged} customer={customer} customerLogout={customerLogout} cartCount={cart.cart.length} />
+      {page}
+      <footer><b>MBLab</b><span>Loja oficial de livros</span></footer>
+    </>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<App />);
