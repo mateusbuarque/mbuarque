@@ -387,6 +387,7 @@ function Login({ data, customerSave, adminLogin }) {
         {mode === "register" && (
           <>
             <input placeholder="WhatsApp" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
+            <input placeholder="CEP obrigatório para envio" value={form.cep} onChange={event => setForm({ ...form, cep: event.target.value })} />
             <input placeholder="CPF obrigatório para envio" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
             <h3>Endereço</h3>
             <div className="shippingGrid">
@@ -810,6 +811,7 @@ function OrdersAdmin({ data, load }) {
             <option>Chargeback</option>
           </select>
 
+          <input placeholder="CEP do cliente para etiqueta" defaultValue={order.buyer?.cep || ""} onBlur={event => update(order.id, { buyer: { ...(order.buyer || {}), cep: event.target.value } })} />
           <input placeholder="CPF do cliente para etiqueta" defaultValue={order.buyer?.cpf || ""} onBlur={event => update(order.id, { buyer: { ...(order.buyer || {}), cpf: event.target.value } })} />
           <input placeholder="Código de rastreio" defaultValue={order.tracking_code || ""} onBlur={event => update(order.id, { tracking_code: event.target.value })} />
           <button className="btn red full" onClick={() => generateLabel(order.id)} >{"Gerar etiqueta manualmente"}</button>
