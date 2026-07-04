@@ -4,3 +4,23 @@
 
 .shippingOptions{display:grid;gap:10px}.shippingOption{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;border:1px solid #ddd;border-radius:14px;padding:12px;background:#fff}.shippingOption.active{border-color:#1034b6;background:#f3f6ff}.shippingOption small{grid-column:2/-1;color:#555}.shippingOption span{font-weight:950;color:#e10600}
 @media(max-width:760px){.shippingOption{grid-template-columns:22px 1fr}.shippingOption span{grid-column:2}.shippingOption small{grid-column:2}}
+@media (max-width: 700px) {
+  footer {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px;
+    font-size: 13px;
+    text-align: center;
+    gap: 6px;
+  }
+
+  footer span {
+    display: block;
+  }
+
+  footer a {
+    color: inherit;
+    text-decoration: underline;
+    word-break: break-word;
+  }
+}
