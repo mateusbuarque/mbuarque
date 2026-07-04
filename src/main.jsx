@@ -304,6 +304,11 @@ function BookCard({ book }) {
       {Number(book.old_price || 0) > 0 && <del>{money(book.old_price)}</del>}
       <b>{money(book.price)}</b>
       <a className="btn" href={`#/livro/${book.id}`}>Ver detalhes</a>
+      <p className="stock">
+  {Number(book.stock || 0) > 0
+    ? `Estoque: ${book.stock} ${Number(book.stock) === 1 ? "unidade" : "unidades"}`
+    : "Esgotado"}
+</p>
     </article>
   );
 }
