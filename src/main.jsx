@@ -871,7 +871,7 @@ function App() {
     <>
       <Header adminLogged={adminLogged} customer={customer} customerLogout={customerLogout} cartCount={cart.cart.length} />
       {page}
-      <footer><b>MBLab</b><span>Loja oficial de livros</span></footer>
+      <footer><b>MBLab</b><span>Loja oficial de livros • suporte: mateusbuarquepugli@gmail.com</span></footer>
     </>
   );
 }
