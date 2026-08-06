@@ -135,7 +135,7 @@ function stockLabel(book) {
   if (isPreorder(book)) {
     return {
       text: book?.preorder_shipping_date
-        ? `Pré-venda • lançamento previsto para ${preorderDateLabel(book)}`
+        ? `Pré-venda • envio a partir de ${preorderDateLabel(book)}`
         : "Disponível para pré-venda",
       className: "preorder"
     };
@@ -1139,8 +1139,14 @@ function Cart({ data, cart, customer, notify }) {
     try {
       const title = items.map(item => item.book.title).join(", ");
       const buyer = { ...customer, cep: shippingCep || customer.cep };
+      const orderNumberResponse = await api("/.netlify/functions/store-data?action=next-order-id", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}"
+      });
+
       const order = {
-        id: `PED-${Date.now()}`,
+        id: orderNumberResponse.orderId,
         status: "Aguardando pagamento",
         tracking_code: "",
         book_title: title,
