@@ -135,7 +135,7 @@ function stockLabel(book) {
   if (isPreorder(book)) {
     return {
       text: book?.preorder_shipping_date
-        ? `Pré-venda • envio a partir de ${preorderDateLabel(book)}`
+        ? `Pré-venda • lançamento previsto para ${preorderDateLabel(book)}`
         : "Disponível para pré-venda",
       className: "preorder"
     };
