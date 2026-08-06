@@ -1758,7 +1758,11 @@ function OrdersAdmin({ data, load, notify }) {
   const cancelledStatuses = ["Cancelado", "Cancelado pelo cliente", "Pagamento recusado", "Estornado", "Chargeback"];
   const orders = tab === "cancelados"
     ? data.orders.filter(order => cancelledStatuses.includes(order.status))
-    : data.orders.filter(order => !cancelledStatuses.includes(order.status));
+    : tab === "entregues"
+      ? data.orders.filter(order => order.status === "Entregue")
+      : data.orders.filter(order =>
+          !cancelledStatuses.includes(order.status) && order.status !== "Entregue"
+        );
 
   async function update(id, body) {
     try {
@@ -1783,7 +1787,7 @@ function OrdersAdmin({ data, load, notify }) {
       <div className="adminOrdersHead">
         <h2>Pedidos</h2>
         <button className={tab === "ativos" ? "btn red" : "btn"} onClick={() => setTab("ativos")}>Ativos</button>
-        <button className={tab === "entregue" ? "btn red" : "btn"} onClick={() => setTab("entregue")}>Entregue</button>
+        <button className={tab === "entregues" ? "btn red" : "btn"} onClick={() => setTab("entregues")}>Entregues</button>
         <button className={tab === "cancelados" ? "btn red" : "btn"} onClick={() => setTab("cancelados")}>Cancelados</button>
       </div>
 
