@@ -1783,6 +1783,7 @@ function OrdersAdmin({ data, load, notify }) {
       <div className="adminOrdersHead">
         <h2>Pedidos</h2>
         <button className={tab === "ativos" ? "btn red" : "btn"} onClick={() => setTab("ativos")}>Ativos</button>
+        <button className={tab === "entregue" ? "btn red" : "btn"} onClick={() => setTab("entregue")}>Entregue</button>
         <button className={tab === "cancelados" ? "btn red" : "btn"} onClick={() => setTab("cancelados")}>Cancelados</button>
       </div>
 
