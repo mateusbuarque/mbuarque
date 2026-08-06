@@ -1811,6 +1811,7 @@ function OrdersAdmin({ data, load, notify }) {
               <option>Separando pedido</option>
               <option>Enviado</option>
               <option>Entregue</option>
+              <option>Enviado</option>
               <option>Cancelado pelo cliente</option>
               <option>Pagamento recusado</option>
               <option>Estornado</option>
