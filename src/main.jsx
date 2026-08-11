@@ -1255,6 +1255,7 @@ setShippingOptions([]);
 }}
 >
 Retirada
+<label> Retire pessoalmente no show </label>
 </button>
 
             {!onlyDigital && (
