@@ -1549,7 +1549,7 @@ function BooksAdmin({ data, load, notify }) {
             <label className="span2">Descrição curta<input placeholder="Resumo para a vitrine" value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} /></label>
             <label className="span2">Descrição completa<textarea rows="7" placeholder="Texto completo da página do livro" value={form.longDescription} onChange={event => setForm({ ...form, longDescription: event.target.value })} /></label>
             <label>Autor<input placeholder="Nome do autor" value={form.author} onChange={event => setForm({ ...form, author: event.target.value })} /></label>
-            <label>Formato<select value={form.type} onChange={event => setForm({ ...form, type: event.target.value })}><option>Físico</option><option>Digital</option></select></label>
+            <label>Formato<select value={form.type} onChange={event => setForm({ ...form, type: event.target.value })}><option>Físico</option></select></label>
             <label>ISBN opcional<input placeholder="ISBN" value={form.isbn} onChange={event => setForm({ ...form, isbn: event.target.value })} /></label>
             <label>Número de páginas<input type="number" min="0" placeholder="Ex.: 120" value={form.pageCount} onChange={event => setForm({ ...form, pageCount: event.target.value })} /></label>
           </div>
