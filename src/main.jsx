@@ -1112,7 +1112,6 @@ function Cart({ data, cart, customer, notify }) {
         { id: "SEDEX-FIXO", name: "SEDEX", company: "Correios", price: sedexPrice, delivery_time: sedexDays, custom_delivery_time: sedexDays, service_id: "SEDEX-FIXO" },
         { id: "CARTA-SIMPLES", name: "Carta Simples", company: "Correios", price: simpleLetterPrice, delivery_time: simpleLetterDays, custom_delivery_time: simpleLetterDays, service_id: "CARTA-SIMPLES" },
         { id: "CARTA-REGISTRADA", name: "Carta Registrada", company: "Correios", price: registeredLetterPrice, delivery_time: registeredLetterDays, custom_delivery_time: registeredLetterDays, service_id: "CARTA-REGISTRADA" }
-        { id: "RETIRADA", name: "Retirada", company: "MBLab", price:  , delivery_time: MBLabdays, custom_delivery_time: MBLabdays, service_id: "RETIRADA" },
       ];
 
       setShippingOptions(services);
