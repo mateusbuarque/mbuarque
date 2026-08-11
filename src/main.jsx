@@ -1254,8 +1254,10 @@ service_id: "RETIRADA"
 setShippingOptions([]);
 }}
 >
-Retirada
-<label> Retire pessoalmente no show </label>
+<label>
+  Retirada
+  <br />
+  <small> Retire pessoalmente no show </small> </label>
 </button>
 
             {!onlyDigital && (
