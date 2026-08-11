@@ -135,7 +135,7 @@ function stockLabel(book) {
   if (isPreorder(book)) {
     return {
       text: book?.preorder_shipping_date
-        ? `Pré-venda • envio a partir de ${preorderDateLabel(book)}`
+        ? `Pré-venda • lançamento previsto ${preorderDateLabel(book)}`
         : "Disponível para pré-venda",
       className: "preorder"
     };
@@ -819,8 +819,8 @@ function BookPage({ data, cart, customer, wishlist, notify, load }) {
 
           {isPreorder(book) && (
             <div className="preorderNotice">
-              <strong>Compra em pré-venda</strong>
-              <span>O pagamento é feito agora e o envio começa a partir de {preorderDateLabel(book)}.</span>
+              <strong>Comprar na pré-venda</strong>
+              <span>O pagamento é feito agora e o lançamento está previsto para {preorderDateLabel(book)}.</span>
             </div>
           )}
 
@@ -1205,7 +1205,7 @@ function Cart({ data, cart, customer, notify }) {
                 <a href={`#/livro/${item.book.id}`}><img src={getBookImages(item.book)[0]} alt={item.book.title} /></a>
                 <div className="cartInfo">
                   <h3>{item.book.title}</h3>
-                  {isPreorder(item.book) && <span className="cartPreorder">Pré-venda • envio a partir de {preorderDateLabel(item.book)}</span>}
+                  {isPreorder(item.book) && <span className="cartPreorder">Pré-venda • lançamento previsto {preorderDateLabel(item.book)}</span>}
                   <p>{money(pricing.current)}</p>
                   <span className={`stock ${stockLabel(item.book).className}`}>{stockLabel(item.book).text}</span>
                   <div className="quantity">
@@ -1476,7 +1476,7 @@ function BooksAdmin({ data, load, notify }) {
       return notify("A data final da promoção precisa ser posterior à data inicial.", "error");
     }
     if (form.isPreorder && !form.preorderShippingDate) {
-      return notify("Informe a data prevista de envio da pré-venda.", "error");
+      return notify("Informe a data prevista de lançamento do livro na pré-venda.", "error");
     }
 
     setSaving(true);
@@ -1577,7 +1577,7 @@ function BooksAdmin({ data, load, notify }) {
             <label>Estoque<input type="number" min="0" value={form.stock} onChange={event => setForm({ ...form, stock: event.target.value })} /></label>
             <label className="checkLabel"><input type="checkbox" checked={form.active} onChange={event => setForm({ ...form, active: event.target.checked })} /> Produto ativo na loja</label>
             <label className="checkLabel"><input type="checkbox" checked={form.isPreorder} onChange={event => setForm({ ...form, isPreorder: event.target.checked })} /> Vender este livro em pré-venda</label>
-            {form.isPreorder && <label>Envio previsto da pré-venda<input type="date" value={form.preorderShippingDate} onChange={event => setForm({ ...form, preorderShippingDate: event.target.value })} /></label>}
+            {form.isPreorder && <label>Lançamento previsto do livro na pré-venda<input type="date" value={form.preorderShippingDate} onChange={event => setForm({ ...form, preorderShippingDate: event.target.value })} /></label>}
           </div>
         </fieldset>
 
@@ -1613,7 +1613,7 @@ function BooksAdmin({ data, load, notify }) {
               <img src={getBookImages(book)[0]} alt={book.title} />
               <div>
                 <h3>{book.title}</h3>
-                <p>{book.active ? "Ativo" : "Inativo"} • {isPreorder(book) ? `Pré-venda: envio ${preorderDateLabel(book)}` : `Estoque: ${getStock(book)}`}</p>
+                <p>{book.active ? "Ativo" : "Inativo"} • {isPreorder(book) ? `Pré-venda: lançamento ${preorderDateLabel(book)}` : `Estoque: ${getStock(book)}`}</p>
                 <PriceBlock book={book} compact />
               </div>
               <button onClick={() => edit(book)} aria-label="Editar"><Pencil size={18} /></button>
