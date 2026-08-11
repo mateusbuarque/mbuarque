@@ -1236,7 +1236,6 @@ function Cart({ data, cart, customer, notify }) {
                   : foundCoupon
                     ? couponResult.message
                     : "Cupom não encontrado"}
-                  <button onClick={() => >Retirada</button>
               </small>
             )}
 
