@@ -442,7 +442,6 @@ function Header({ customer, customerLogout, cartCount, favoriteCount }) {
       <div className="cat">
         <a href="#/loja">Todos</a>
         <a href="#/loja/fisicos">Livros físicos</a>
-        <a href="#/loja/digitais">Livros digitais</a>
         <a href="#/loja/promocoes">Promoções</a>
       </div>
 
@@ -534,7 +533,6 @@ function Home({ data, wishlist }) {
         <div className="mChips">
           <a href="#/loja">Todos</a>
           <a href="#/loja/fisicos">Físicos</a>
-          <a href="#/loja/digitais">Digitais</a>
           <a href="#/loja/promocoes">Promoções</a>
         </div>
 
@@ -616,14 +614,13 @@ function Store({ data, wishlist, category = "todos" }) {
   let books = data.books.filter(book => book.active);
 
   if (category === "fisicos") books = books.filter(book => normalizeText(book.type).includes("fisico"));
-  if (category === "digitais") books = books.filter(book => normalizeText(book.type).includes("digital"));
   if (category === "promocoes") books = books.filter(book => getPricing(book).active);
   if (search.trim()) {
     const term = normalizeText(search);
     books = books.filter(book => [book.title, book.author, book.description].some(value => normalizeText(value).includes(term)));
   }
 
-  const title = category === "todos" ? "Todos os livros" : category === "fisicos" ? "Livros físicos" : category === "digitais" ? "Livros digitais" : "Promoções";
+  const title = category === "todos" ? "Todos os livros" : category === "fisicos" ? "Livros físicos" : "Promoções";
 
   return (
     <Section title={title}>
@@ -2041,7 +2038,6 @@ function App() {
   if (loading) page = <SkeletonLoading />;
   else if (route === "/loja") page = <Store data={data} wishlist={wishlist} />;
   else if (route === "/loja/fisicos") page = <Store data={data} wishlist={wishlist} category="fisicos" />;
-  else if (route === "/loja/digitais") page = <Store data={data} wishlist={wishlist} category="digitais" />;
   else if (route === "/loja/promocoes") page = <Store data={data} wishlist={wishlist} category="promocoes" />;
   else if (route.startsWith("/livro/")) page = <BookPage data={data} cart={cart} customer={customer} wishlist={wishlist} notify={notifications.notify} load={load} />;
   else if (route === "/login") page = <Login data={data} customerSave={saveCustomer} adminLogin={adminLogin} notify={notifications.notify} />;
