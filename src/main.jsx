@@ -1236,6 +1236,8 @@ function Cart({ data, cart, customer, notify }) {
                   : foundCoupon
                     ? couponResult.message
                     : "Cupom não encontrado"}
+                  {shippingLoading ? : "Retirada"}
+                </button>
               </small>
             )}
 
