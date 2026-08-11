@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import "./style.css";
 
-const USER = "Mateus Buarque";
 const ADMIN_EMAIL = "mateusbpugli@gmail.com";
 const ADMIN_PASSWORD = "Mateus Buarque 1101";
 const CUSTOMER_KEY = "mblab_customer";
@@ -988,7 +987,7 @@ function Login({ data, customerSave, adminLogin, notify }) {
         {mode === "register" && (
           <>
             <input placeholder="WhatsApp" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
-            <input placeholder="CPF obrigatório para envio" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
+            <input placeholder="CPF obrigatório" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
             <h3>Endereço</h3>
             <div className="shippingGrid">
               <input placeholder="CEP" value={form.cep} onChange={event => setForm({ ...form, cep: event.target.value })} />
