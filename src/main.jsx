@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import "./style.css";
 
+const USER = "Mateus Buarque";
 const ADMIN_EMAIL = "mateusbpugli@gmail.com";
 const ADMIN_PASSWORD = "Mateus Buarque 1101";
 const CUSTOMER_KEY = "mblab_customer";
