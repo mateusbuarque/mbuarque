@@ -1237,6 +1237,23 @@ function Cart({ data, cart, customer, notify }) {
                     ? couponResult.message
                     : "Cupom não encontrado"}
               </small>
+            <button
+              type="button"
+              className="btn full"
+              onClick={() => {
+                setSelectedShipping({
+                  id: "RETIRADA",
+                  name: "Retirada",
+                  company: "MBLab",
+                  price: 0,
+                  delivery_time: 0,
+                  service_id: "RETIRADA"
+                });
+                setShippingOptions([]);
+              }}
+            >
+              Retirada
+            </button>
             )}
 
             {!onlyDigital && (
