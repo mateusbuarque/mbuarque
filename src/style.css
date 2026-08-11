@@ -371,12 +371,12 @@ footer a{text-decoration:underline}
 
 
 /* Pré-venda */
-.stock.preorder{color:#7a3db8!important}
-.preorderBadge{position:absolute;left:12px;bottom:12px;background:#5f2c91;color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;letter-spacing:.4px}
-.preorderNotice{display:grid;gap:4px;border:1px solid #d9c0ef;background:#fbf7ff;color:#4d216f;border-radius:14px;padding:16px 18px;margin:16px 0}
+.stock.preorder{color:#0000FF!important}
+.preorderBadge{position:absolute;left:12px;bottom:12px;background:#0000FF;color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;letter-spacing:.4px}
+.preorderNotice{display:grid;gap:4px;border:1px solid #d9c0ef;background:#fbf7ff;color:#0000FF;border-radius:14px;padding:16px 18px;margin:16px 0}
 .preorderNotice strong{font-size:17px}
 .preorderNotice span{font-size:14px;line-height:1.45}
-.cartPreorder{display:block;color:#5f2c91;font-weight:900;font-size:12px;margin:0 0 6px}
+.cartPreorder{display:block;color:#0000FF;font-weight:900;font-size:12px;margin:0 0 6px}
 
 /* Página exclusiva e etiqueta de envio 15 x 9 cm */
 .shippingPrintPage{min-height:100vh;background:#ececec;padding:26px 12px 50px;display:grid;justify-items:center;align-content:start;gap:16px}
