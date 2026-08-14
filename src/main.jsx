@@ -435,7 +435,6 @@ function Header({ customer, customerLogout, cartCount, favoriteCount }) {
           <a href="#/favoritos" onClick={closeMenu}>Favoritos ({favoriteCount})</a>
           <a href="#/carrinho" onClick={closeMenu}>Carrinho ({cartCount})</a>
           <a href="#/minhas-compras" onClick={closeMenu}>Minhas compras</a>
-          <a href="#/minha-conta" onClick={closeMenu}>Minha conta</a>
           {customer ? <button onClick={() => { customerLogout(); closeMenu(); }}>Sair cliente</button> : <a href="#/login" onClick={closeMenu}>Entrar</a>}
         </nav>
       </header>
@@ -452,7 +451,6 @@ function Header({ customer, customerLogout, cartCount, favoriteCount }) {
         <a href="#/favoritos">Favoritos</a>
         <a href="#/carrinho">Carrinho{cartCount ? ` (${cartCount})` : ""}</a>
         <a href="#/minhas-compras">Compras</a>
-        <a href="#/minha-conta" onClick={closeMenu}>Minha conta</a>
       </div>
     </>
   );
