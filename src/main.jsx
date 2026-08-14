@@ -452,6 +452,7 @@ function Header({ customer, customerLogout, cartCount, favoriteCount }) {
         <a href="#/favoritos">Favoritos</a>
         <a href="#/carrinho">Carrinho{cartCount ? ` (${cartCount})` : ""}</a>
         <a href="#/minhas-compras">Compras</a>
+        <a href="#/minha-conta" onClick={closeMenu}>Minha conta</a>
       </div>
     </>
   );
