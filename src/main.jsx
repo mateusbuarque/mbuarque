@@ -23,6 +23,8 @@ import {
 import "./style.css";
 
 const ADMIN_EMAIL = "mateusbpugli@gmail.com";
+const ADMIN_EMAIL = "pedrotirolli@gmail.com";
+const ADMIN_PASSWORD = "Mateus Buarque 1101";
 const ADMIN_PASSWORD = "Mateus Buarque 1101";
 const CUSTOMER_KEY = "mblab_customer";
 const PAID_STATUSES = ["Aguardando envio", "Pago", "Separando pedido", "Enviado", "Entregue"];
