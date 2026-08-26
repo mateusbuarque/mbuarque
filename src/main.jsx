@@ -441,7 +441,7 @@ function Header({ customer, customerLogout, cartCount, favoriteCount }) {
 
       <div className="cat">
         <a href="#/loja">Todos</a>
-        <a href="#/loja/fisicos">Livros físicos</a>
+        <a href="#/loja/fisicos">Livros</a>
         <a href="#/loja/promocoes">Promoções</a>
       </div>
 
@@ -620,7 +620,7 @@ function Store({ data, wishlist, category = "todos" }) {
     books = books.filter(book => [book.title, book.author, book.description].some(value => normalizeText(value).includes(term)));
   }
 
-  const title = category === "todos" ? "Todos os livros" : category === "fisicos" ? "Livros físicos" : "Promoções";
+  const title = category === "todos" ? "Todos os livros" : category === "fisicos" ? "Livros" : "Promoções";
 
   return (
     <Section title={title}>
