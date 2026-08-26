@@ -510,7 +510,7 @@ function Home({ data, wishlist }) {
           <div>
             <p>Loja oficial</p>
             <h1>MBLab</h1>
-            <h2>Trabalhamos com o politicamente f****</h2>
+            <h2>Trabalhamos com o politicamente f******</h2>
             <a className="btn red" href="#/loja">Comprar livros</a>
           </div>
           <img src="/logo.jpeg" alt="MBLab" />
