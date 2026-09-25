@@ -119,6 +119,22 @@ async function registerCustomer(body) {
     throw error;
   }
 
+  let instagram = String(body.instagram || "").trim();
+  if (instagram !== "Não tem Instagram") {
+    const handle = instagram
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+      .replace(/^@+/, "")
+      .replace(/[/?#].*$/, "")
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9._]{1,30}$/.test(handle)) {
+      const error = new Error("Informe um @ do Instagram válido ou marque \"Não tenho Instagram\".");
+      error.statusCode = 400;
+      throw error;
+    }
+    instagram = `@${handle}`;
+  }
+
   const existing = await supabase(
     `customers?email=eq.${encodeURIComponent(email)}&select=id`,
     { method: "GET" }
@@ -135,6 +151,7 @@ async function registerCustomer(body) {
     email,
     password,
     phone: String(body.phone || ""),
+    instagram,
     cpf: String(body.cpf || ""),
     cep: String(body.cep || ""),
     street: String(body.street || ""),
