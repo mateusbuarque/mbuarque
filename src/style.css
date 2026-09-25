@@ -143,6 +143,12 @@ nav a:hover,nav button:hover{color:var(--red)}
 .login form{display:grid;gap:12px;width:min(100%,560px)}
 .pass{display:grid;grid-template-columns:1fr 58px}
 .pass input{border-radius:10px 0 0 10px}
+.instaField{display:grid;grid-template-columns:44px 1fr}
+.instaField span{display:grid;place-items:center;border:1px solid #ccc;border-right:0;border-radius:10px 0 0 10px;background:#fafafa;font-weight:900;color:#555}
+.instaField input{border-radius:0 10px 10px 0}
+.instaField.disabled{opacity:.5}
+.instaField input:disabled{background:#f3f3f3;cursor:not-allowed}
+.instaCheck{padding:4px 0 8px!important;align-self:start;cursor:pointer;font-size:14px}
 .pass button{border:1px solid #ccc;background:#fff;border-radius:0 10px 10px 0;display:grid;place-items:center;cursor:pointer}
 .shippingGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .shippingGrid input:nth-child(3),.shippingGrid input:nth-child(7){grid-column:span 2}
@@ -387,7 +393,7 @@ footer a{text-decoration:underline}
 }
 
 
-/* Pré-venda */
+/* PrÃ©-venda */
 .stock.preorder{color:#0000ff!important}
 .preorderBadge{position:absolute;left:12px;bottom:12px;background:#0000ff;color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;letter-spacing:.4px}
 .preorderNotice{display:grid;gap:4px;border:1px solid #d9c0ef;background:#fbf7ff;color:#0000ff;border-radius:14px;padding:16px 18px;margin:16px 0}
@@ -395,7 +401,7 @@ footer a{text-decoration:underline}
 .preorderNotice span{font-size:14px;line-height:1.45}
 .cartPreorder{display:block;color:#0000ff;font-weight:900;font-size:12px;margin:0 0 6px}
 
-/* Página exclusiva e etiqueta de envio 15 x 9 cm */
+/* PÃ¡gina exclusiva e etiqueta de envio 15 x 9 cm */
 .shippingPrintPage{min-height:100vh;background:#ececec;padding:26px 12px 50px;display:grid;justify-items:center;align-content:start;gap:16px}
 .labelScreenActions{width:min(100%,760px);display:flex;justify-content:center;gap:10px}
 .shippingLabelSheet{width:150mm;height:90mm;max-width:100%;font-family:Arial,Helvetica,sans-serif;font-size:9pt;line-height:1.15;color:#000;background:#fff;border:.45mm solid #000;padding:1.5mm;box-sizing:border-box;display:grid;grid-template-rows:5mm 15mm 5mm 1fr 5mm 18mm;row-gap:0}
