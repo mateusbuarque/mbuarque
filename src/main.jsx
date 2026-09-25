@@ -953,11 +953,24 @@ function BookPage({ data, cart, customer, wishlist, notify, load }) {
   );
 }
 
+const NO_INSTAGRAM = "Não tem Instagram";
+
+function normalizeInstagram(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/^@+/, "")
+    .replace(/[/?#].*$/, "")
+    .trim()
+    .toLowerCase();
+}
+
 function Login({ data, customerSave, adminLogin, notify }) {
   const [mode, setMode] = useState("login");
   const [show, setShow] = useState(false);
   const [form, setForm] = useState({
     name: "", email: "", password: "", phone: "", cpf: "",
+    instagram: "", noInstagram: false,
     cep: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: ""
   });
 
@@ -988,8 +1001,17 @@ function Login({ data, customerSave, adminLogin, notify }) {
 
     if (!form.name.trim()) return notify("Preencha seu nome.", "error");
 
+    let instagram = NO_INSTAGRAM;
+    if (!form.noInstagram) {
+      const handle = normalizeInstagram(form.instagram);
+      if (!handle) return notify("Informe seu @ do Instagram ou marque \"Não tenho Instagram\".", "error");
+      if (!/^[a-z0-9._]{1,30}$/.test(handle)) return notify("@ do Instagram inválido. Use só letras, números, ponto e underline.", "error");
+      instagram = `@${handle}`;
+    }
+
     try {
-      const customer = { ...form, id: email, email };
+      const { noInstagram, ...fields } = form;
+      const customer = { ...fields, instagram, id: email, email };
       const response = await api("/.netlify/functions/store-data?action=customer-register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1017,6 +1039,22 @@ function Login({ data, customerSave, adminLogin, notify }) {
         {mode === "register" && (
           <>
             <input placeholder="WhatsApp" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
+            <div className={`instaField${form.noInstagram ? " disabled" : ""}`}>
+              <span>@</span>
+              <input
+                placeholder="seu.instagram (obrigatório)"
+                value={form.instagram}
+                disabled={form.noInstagram}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                onChange={event => setForm({ ...form, instagram: event.target.value.replace(/^@+/, "") })}
+              />
+            </div>
+            <label className="checkLabel instaCheck">
+              <input type="checkbox" checked={form.noInstagram} onChange={event => setForm({ ...form, noInstagram: event.target.checked, instagram: event.target.checked ? "" : form.instagram })} />
+              Não tenho Instagram
+            </label>
             <input placeholder="CPF obrigatório" value={form.cpf} onChange={event => setForm({ ...form, cpf: event.target.value })} />
             <h3>Endereço</h3>
             <div className="shippingGrid">
@@ -1443,6 +1481,7 @@ function MyAccount({ customer, customerLogout, cartCount, favoriteCount }) {
           <div><span>Nome</span><b>{customer.name || "Não informado"}</b></div>
           <div><span>E-mail</span><b>{customer.email || "Não informado"}</b></div>
           <div><span>Telefone</span><b>{customer.phone || customer.telephone || "Não informado"}</b></div>
+          <div><span>Instagram</span><b>{customer.instagram || "Não informado"}</b></div>
           <div><span>Endereço</span><b>{address || "Não informado"}</b></div>
         </div>
       </div>
